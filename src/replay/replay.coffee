@@ -4,9 +4,6 @@
 Catalog           = require("./catalog")
 Chain             = require("./chain")
 { EventEmitter }  = require("events")
-logger            = require("./logger")
-passThrough       = require("./pass_through")
-recorder          = require("./recorder")
 
 
 # Supported modes.
@@ -135,26 +132,4 @@ class Replay extends EventEmitter
     # Clears loaded fixtures, and updates to new dir
     @catalog.setFixturesDir(dir)
 
-
-replay = new Replay(process.env.REPLAY || "replay")
-
-
-# The default processing chain (from first to last):
-# - Pass through requests to localhost
-# - Log request to console is `deubg` is true
-# - Replay recorded responses
-# - Pass through requests in bloody and cheat modes
-passWhenBloodyOrCheat = (request)->
-  return replay.isAllowed(request.url.hostname) ||
-         (replay.mode == "cheat" && !replay.isIgnored(request.url.hostname))
-passToLocalhost = (request)->
-  return replay.isLocalhost(request.url.hostname) ||
-         replay.mode == "bloody"
-
-replay.use passThrough(passWhenBloodyOrCheat)
-replay.use recorder(replay)
-replay.use logger(replay)
-replay.use passThrough(passToLocalhost)
-
-
-module.exports = replay
+module.exports = Replay
